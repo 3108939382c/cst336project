@@ -1,0 +1,58 @@
+html, body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	background-color: #E5E5E5;
+	font-family: 'RobotoDraft', sans-serif;
+	color: #333;
+}
+
+/* background for toolbar when it is condensed */
+core-scroll-header-panel::shadow #condensedHeaderBg {
+	background-color: #000;
+}
+
+core-toolbar {
+	color: #f1f1f1;
+	fill: #f1f1f1;
+	background-color: transparent;
+}
+
+.title {
+	-webkit-transform-origin: 0;
+	transform-origin: 0;
+	font-size: 30px;
+}
+
+.content {
+	padding: 8px;
+	background-color: #eee;
+}
+
+body .drawer:hover paper-item {
+	background-color: #607d8b;
+}
+
+body .drawer:hover paper-item,.drawer:hover core-icon {
+	color: white;
+}
+
+#navpanel {
+	background-color: #FFF;
+}
+
+#navheader {
+	background-color: grey;
+}
+
+body .main {
+	background-color: white;
+	border-radius: 4px;
+	margin: 0 auto;
+}
+
+p {
+	padding: 20px;
+}
