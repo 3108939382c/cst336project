@@ -5,6 +5,7 @@ include_once('dbinfo.php');
 $sql = "SELECT * FROM `gamesNES` LIMIT 30";
 $result = $db->prepare($sql);
 $result->execute();
+
 ?>
 <!DOCTYPE html>
 <html itemscope itemtype="http://schema.org/Organization">
@@ -37,6 +38,7 @@ $result->execute();
 	<link rel="import" href="http://www.polymer-project.org/components/paper-input/paper-input.html">
 	<link rel="import" href="http://www.polymer-project.org/components/paper-dialog/paper-dialog.html">
 	<link rel="import" href="http://www.polymer-project.org/components/paper-dialog/paper-action-dialog.html">
+	<link rel="import" href="http://www.polymer-project.org/components/paper-toast/paper-toast.html">
 
 	<link rel="stylesheet" href="css/main.css">
 
@@ -55,17 +57,46 @@ $result->execute();
 
 		<core-header-panel drawer id="navpanel">
 
+			<?php 
+				//paper toast if ?p= is set, show incorrect user/pword
+				if (isset($_GET['p'])) {
+					echo '<paper-toast id="toast2" text="Username and/or Password is incorrect" opened></paper-toast>';
+				}	
+			?>
+
 
 			<?php
 				if (isset($_SESSION['username'])) {
 					# code... for logged in
 					echo '
 						<core-toolbar id="navheader">
-							<span>Hello '.$_SESSION[username].'!</span>
+							<span>Hello '.$_SESSION[username].': '.$_SESSION[id].'!</span>
 						</core-toolbar>
-						<core-menu>
 
-							<a href="dologout.php"><button class="btn btn-primary">Logout</button></a>
+						<core-menu>
+							<span class="drawer">
+								<paper-item id="home">
+									Home
+								</paper-item>
+							</span>
+							<span class="drawer" id="rentedTitles">
+								<paper-item>
+									Rented Titles
+								</paper-item>
+							</span>
+							<span class="drawer" id="updatePassword">
+								<paper-item>
+									Update Password
+								</paper-item>
+							</span>
+							<span class="drawer">
+							<a href="dologout.php">
+								<paper-item>
+									Logout
+								</paper-item>
+							</a>
+							<span>
+
 
 
 						</core-menu>
@@ -78,15 +109,15 @@ $result->execute();
 						<br>
 						<h4>Login:</h4>
 
-						<form action="dologin.php">
+						<form action="dologin.php" method="post">
 							<paper-input-decorator floatingLabel label="Username">
-								<input type="text">
+								<input type="text" name="loginUsername">
 							</paper-input-decorator>
 
-							<paper-input-decorator floatingLabel label="Password" isInvalid="true">
-								<input type="password">
+							<paper-input-decorator floatingLabel label="Password">
+								<input type="password" name="loginPassword">
 							</paper-input-decorator>
-							<button class="btn btn-primary">Login</button>
+							<button class="btn btn-primary" type="submit">Login</button>
 						</form>
 
 						<hr>
@@ -97,13 +128,11 @@ $result->execute();
 								<input type="text" id="registerUsername" name="registerUsername">
 							</paper-input-decorator>
 
-							<paper-input-decorator floatingLabel label="Password" id="password1Decorator">
-								<input type="password" id="password1" name="registerPassword">
+							<paper-input-decorator floatingLabel label="Password" id="passwordDecorator">
+								<input type="password" id="password" name="registerPassword">
 							</paper-input-decorator>
 
-							<paper-input-decorator floatingLabel label="Retype Password" id="password2Decorator">
-								<input type="password" id="password2">
-							</paper-input-decorator>
+							
 							<button class="btn btn-primary disabled" id="registerButton">Register</button>
 						</form>
 					</core-menu>
@@ -124,94 +153,86 @@ $result->execute();
 			<div class="content" flex>
 				<br>
 
-				<paper-shadow z="2" class="main" style="padding: 10px;">
-					<div align="center">
-						<h2>something</h2>
-						<br>
-					</div>
-				</paper-shadow>
+				<div id="output">
 
-				<br>
+					<paper-shadow z="2" class="main" style="padding: 10px;">
+						<div align="center">
+							<h2>something</h2>
+							<br>
+						</div>
+					</paper-shadow>
 
-				<paper-shadow z="2" class="main">
-					
+					<br>
 
-						<div>
+					<paper-shadow z="2" class="main">
+						<table class="table table-striped" width="100%">
+							<tr>
+								<th>Image</th>
+								<th>Game Title</th>
+								<th>Release Date</th>
+								<th>Genre</th>
+							</tr>
 
-							<table class="table table-striped" width="100%">
-								<tr>
-									<th>Image</th>
-									<th>Game Title</th>
-									<th>Release Date</th>
-									<th>Genre</th>
-								</tr>
+						<?php
 
-							<?php
+						foreach ($result as $row) {
+							echo '<tr>';
 
-							foreach ($result as $row) {
-								echo '<tr>';
+							//png
+							$pngImg = "img/thumb/" . $row[id] . ".png";
 
-								//png
-								$pngImg = "img/thumb/" . $row[id] . ".png";
+							//jpg
+							$jpgImg = "img/thumb/" . $row[id] . ".jpg";
 
-								//jpg
-								$jpgImg = "img/thumb/" . $row[id] . ".jpg";
-
-								if (file_exists($pngImg)) {
-									# code...
-									echo '<td><img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row[id].'"></td>';
-								} elseif (file_exists($jpgImg)) {
-									# code...
-									echo '<td><img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row[id].'"></td>';
-								} else {
-									echo '<td>&nbsp;</td>';
-								}
-
-
-								echo '<td class="text-left"><span data-toggle="modal" data-target="#modal'.$row[id].'">'.$row[gameTitle] . '</span>';
-
-								//modal
-								echo '
-								<div class="modal fade" id="modal'.$row[id].'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-									<div class="modal-dialog">
-										<div class="modal-content">
-											<div class="modal-header">
-												<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-												<h4 class="modal-title" id="myModalLabel">'.$row[gameTitle].'</h4>
-											</div>
-											<div class="modal-body">
-												'.$row[description].'
-											</div>
-											<div class="modal-footer">
-												<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-											</div>
-										</div>
-									</div>
-								</div>
-								';
-								//end modal
-								echo '</td>';
-
-								echo '<td>'.$row[releaseDate].'</td>';
-								echo '<td>'.$row[genre].'</td>';
-						
-								echo '</tr>';
-								
+							if (file_exists($pngImg)) {
+								# code...
+								echo '<td><img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row[id].'"></td>';
+							} elseif (file_exists($jpgImg)) {
+								# code...
+								echo '<td><img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row[id].'"></td>';
+							} else {
+								echo '<td>&nbsp;</td>';
 							}
 
 
-							?>
+							echo '<td class="text-left"><span data-toggle="modal" data-target="#modal'.$row[id].'">'.$row[gameTitle] . '</span>';
 
-							</table>
-							
+							//modal
+							echo '
+							<div class="modal fade" id="modal'.$row[id].'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+											<h4 class="modal-title" id="myModalLabel">'.$row[gameTitle].'</h4>
+										</div>
+										<div class="modal-body">
+											'.$row[description].'
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+										</div>
+									</div>
+								</div>
+							</div>
+							';
+							//end modal
+							echo '</td>';
 
-
-							<br>
-							<div id="output"></div>
-						</div>
-
+							echo '<td>'.$row[releaseDate].'</td>';
+							echo '<td>'.$row[genre].'</td>';
 					
-				</paper-shadow>
+							echo '</tr>';
+							
+						}
+
+
+						?>
+
+						</table>			
+					</paper-shadow>
+
+				</div>
 
 			</div>
 		</core-scroll-header-panel>
@@ -246,86 +267,115 @@ $(document).ready(function(){
 
 		var x = $("#registerUsername").val();
 
+		if (x == '') {
+			setUsernameOK(false);
+			$("#registerUsernameDecorator").attr("isInvalid", "true");
+			$("#registerUsernameDecorator").attr("error", "Username cannot be empty.");
+		} else {
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "registerUsername",
+					checkUsername: x
+				},
+				success: function(result) {
+					//on sucess
+					if (result == 'okay') {
+						//if result == okay, username is available to register
+						//$("#output").html(result);
+						setUsernameOK(true);
+						$("#registerUsernameDecorator").attr("isInvalid", "false");
+
+					} else {
+						//else, username is already taken
+						//$("#output").html(result);
+						setUsernameOK(false);
+						$("#registerUsernameDecorator").attr("isInvalid", "true");
+						$("#registerUsernameDecorator").attr("error", "Username is already taken.");
+						
+					}
+					checkButton();
+					
+				}
+			});
+
+		}
+
+		
+	});
+
+	$("#password").keyup(function() {
+		var p1 = $("#password").val();
+		
+		if (p1 == '') {
+			//echo password cannot be left empty
+			setPassworkOK(false);
+			$("#passwordDecorator").attr("isInvalid", "true");
+			$("#passwordDecorator").attr("error", "Password cannot be empty.");
+
+		} else {
+			//password field isn't empty, everything ok
+			setPassworkOK(true);
+
+			$("#passwordDecorator").attr("isInvalid", "false");
+
+		}
+		checkButton();
+	});
+
+	$("#updatePassword").click(function() {
 		$.ajax({
 			url: "doajax.php",
 			type: "POST",
 			data: {
-				doFunction: "registerUsername",
-				checkUsername: x
+				doFunction: "updatePassword",
+				someData: "x"
 			},
 			success: function(result) {
 				//on sucess
-				if (result == 'okay') {
-					//if result == okay, username is available to register
-					$("#output").html(result);
-					setUsernameOK(true);
-					
-					$("#registerUsernameDecorator").attr("isInvalid", "false");
-
-
-				} else {
-					//else, username is already taken
-					$("#output").html(result);
-					setUsernameOK(false);
-					$("#registerUsernameDecorator").attr("isInvalid", "true");
-					$("#registerUsernameDecorator").attr("error", "Username is already taken.");
-					
-
-				}
-				checkButton();
+				$("#output").html(result);
 				
 			}
 		});
+
 	});
 
-	//check if passwords match
-	$("#password1").keyup(function() {
-		var p1 = $("#password1").val();
-		var p2 = $("#password2").val();
+	$("#rentedTitles").click(function() {
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "rentedTitles",
+				someData: "x"
+			},
+			success: function(result) {
+				//on sucess
+				$("#output").html(result);
+				
+			}
+		});
 
-		if ( (p1 == p2) && (p1 != '') ) {
-			//passwords are the same, enable button
-			setPassworkOK(true);
-
-			$("#password1Decorator").attr("isInvalid", "false");
-			$("#password2Decorator").attr("isInvalid", "false");
-
-		} else {
-			//passwords are different, show error message, disable register button
-			setPassworkOK(false);
-
-			$("#password1Decorator").attr("isInvalid", "true");
-			$("#password2Decorator").attr("isInvalid", "true");
-			$("#password1Decorator").attr("error", "Passwords don't match.");
-			$("#password2Decorator").attr("error", "Passwords don't match.");
-			
-		}
-		checkButton();
 	});
 
-	$("#password2").keyup(function() {
-		var p1 = $("#password1").val();
-		var p2 = $("#password2").val();
+	$("#home").click(function() {
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "home",
+				someData: "x"
+			},
+			success: function(result) {
+				//on sucess
+				$("#output").html(result);
+				
+			}
+		});
 
-		if ( (p1 == p2) && (p1 != '') ) {
-			//passwords are the same, enable button
-			setPassworkOK(true);
-
-			$("#password1Decorator").attr("isInvalid", "false");
-			$("#password2Decorator").attr("isInvalid", "false");
-
-		} else {
-			//passwords are different, show error message, disable register button
-			setPassworkOK(false);
-
-			$("#password1Decorator").attr("isInvalid", "true");
-			$("#password2Decorator").attr("isInvalid", "true");
-			$("#password1Decorator").attr("error", "Passwords don't match.");
-			$("#password2Decorator").attr("error", "Passwords don't match.");
-			
-		}
-		checkButton();
 	});
+
+	
 	
 });
 
