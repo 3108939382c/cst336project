@@ -116,6 +116,18 @@ if ($_POST['doFunction'] == "home") {
 }
 
 
+if ($_POST['doFunction'] == "buildQuery") {
+	echo $_POST['theText'];
+	echo '<br>';
+	echo $_POST['theGenre'];
+	echo '<br>';
+	echo $_POST['theYear'];
+	echo '<br>';
+	echo $_POST['theAvail'];
+	echo '<br>';
+	echo 'chimichanga';
+}
+
 
 
 

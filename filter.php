@@ -3,6 +3,8 @@ session_start();
 include_once('dbinfo.php');
 
 
+
+
 //$originalDate = "10/31/1985";
 //$newDate = date("Y", strtotime($originalDate));
 
@@ -86,6 +88,8 @@ SELECT DISTINCT `year` FROM `gamesNES`
 
 ?>
 
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
 <table>
 	<tr>
 		<td>Search:</td>
@@ -94,9 +98,9 @@ SELECT DISTINCT `year` FROM `gamesNES`
 		<td>Stock:</td>
 		<td>&nbsp;</td>
 	<tr>
-		<td><input type="text" name="fname"></td>
+		<td><input type="text" name="searchText" id="searchText"></td>
 		<td>
-			<select>
+			<select name="searchYears" id="searchYears">
 				<option value="All">All</option>
 				<option value="1970">1970</option>
 				<option value="1982">1982</option>
@@ -121,7 +125,7 @@ SELECT DISTINCT `year` FROM `gamesNES`
 			</select>
 		</td>
 		<td>
-			<select>
+			<select name="searchGenre" id="searchGenre">
 				<option value="All">All</option>
 				<option value="Action">Action</option>
 				<option value="Adventure">Adventure</option>
@@ -141,17 +145,60 @@ SELECT DISTINCT `year` FROM `gamesNES`
 			</select>
 		</td>
 		<td>
-			<select>
+			<select name="searchStock" id="searchStock">
 				<option value="All">All</option>
 				<option value="InStock">In Stock</option>
 				<option value="OutOfStock">Out of Stock</option>
 			</select>
 		</td>
 		<td>
-			<button>Submit</button>
+			<button id="clickButton">Submit</button>
 		</td>
 	</tr>
 
 </table>
+
+<div id="output">
+
+<script>
+$(document).ready(function(){
+
+	$("#clickButton").click(function() {
+
+		var myText = $("#searchText").val();
+		var myGenre = $("#searchGenre").val();
+		var myYear = $("#searchYears").val();
+		var myAvail = $("#searchStock").val();
+
+		//alert(myText);
+
+		
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "buildQuery",
+				theText: myText,
+				theGenre: myGenre,
+				theYear: myYear,
+				theAvail: myAvail
+			},
+			success: function(result) {
+				//on sucess
+				$("#output").html(result);
+				
+			}
+		});
+		
+	});
+	
+});
+
+
+
+
+
+
+</script>
 
 
