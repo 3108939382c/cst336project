@@ -62,35 +62,35 @@ if ($_POST['doFunction'] == "home") {
 			echo '<tr>';
 
 			//png
-			$pngImg = "img/thumb/" . $row[id] . ".png";
+			$pngImg = "img/thumb/" . $row['id'] . ".png";
 
 			//jpg
-			$jpgImg = "img/thumb/" . $row[id] . ".jpg";
+			$jpgImg = "img/thumb/" . $row['id'] . ".jpg";
 
 			if (file_exists($pngImg)) {
 				# code...
-				echo '<td><img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row[id].'"></td>';
+				echo '<td><img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'"></td>';
 			} elseif (file_exists($jpgImg)) {
 				# code...
-				echo '<td><img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row[id].'"></td>';
+				echo '<td><img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'"></td>';
 			} else {
 				echo '<td>&nbsp;</td>';
 			}
 
 
-			echo '<td class="text-left"><span data-toggle="modal" data-target="#modal'.$row[id].'">'.$row[gameTitle] . '</span>';
+			echo '<td class="text-left"><span data-toggle="modal" data-target="#modal'.$row['id'].'">'.$row['gameTitle'] . '</span>';
 
 			//modal
 			echo '
-			<div class="modal fade" id="modal'.$row[id].'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal fade" id="modal'.$row['id'].'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
 						<div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-							<h4 class="modal-title" id="myModalLabel">'.$row[gameTitle].'</h4>
+							<h4 class="modal-title" id="myModalLabel">'.$row['gameTitle'].'</h4>
 						</div>
 						<div class="modal-body">
-							'.$row[description].'
+							'.$row['description'].'
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -102,8 +102,8 @@ if ($_POST['doFunction'] == "home") {
 			//end modal
 			echo '</td>';
 
-			echo '<td>'.$row[releaseDate].'</td>';
-			echo '<td>'.$row[genre].'</td>';
+			echo '<td>'.$row['releaseDate'].'</td>';
+			echo '<td>'.$row['genre'].'</td>';
 	
 			echo '</tr>';
 			
