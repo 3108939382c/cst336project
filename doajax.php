@@ -126,6 +126,48 @@ if ($_POST['doFunction'] == "buildQuery") {
 	echo $_POST['theAvail'];
 	echo '<br>';
 	echo 'chimichanga';
+	echo '<br><br><br>';
+
+	$stringStart = "SELECT * FROM gamesNES";
+	$myArray = array();
+
+	if ($_POST['theText'] != '') {
+		$string = '`gameTitle` LIKE %$_POST[theText]%';
+		array_push($myArray, $string);
+	}
+
+	if ($_POST['theGenre'] != 'All') {
+		$string = '`genre` LIKE %$_POST[theGenre]%';
+		array_push($myArray, $string);
+	}
+
+	if ($_POST['theYear'] != 'All') {
+		$string = '`year` LIKE %$_POST[theYear]%';
+		array_push($myArray, $string);
+	}
+
+	// get array length
+	$arrayLength = sizeof($myArray);
+
+	//echo $arrayLength;
+	if ($arrayLength == 0) {
+		echo $stringStart;
+	} elseif ($arrayLength == 1) {
+		$stringStart = $stringStart . ' WHERE ' . $myArray[0];
+		echo $stringStart;
+	} elseif ($arrayLength > 1) {
+		# code...
+		$stringStart = $stringStart . ' WHERE ' . $myArray[0];
+		for ($i=1; $i < $arrayLength; $i++) { 
+			# code...
+			$stringStart = $stringStart . ' AND ' . $myArray[$i];
+		}
+		echo $stringStart;
+	}
+
+
+
+	//SELECT * FROM gamesNES WHERE 
 }
 
 
