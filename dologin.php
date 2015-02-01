@@ -3,7 +3,7 @@ session_start();
 include_once('dbinfo.php');
 
 $postUsername = $_POST['loginUsername'];
-$postPassword = $_POST['loginPassword'];
+$postPassword = sha1($_POST['loginPassword']);
 
 $sql = "SELECT `id` FROM `user` WHERE `username` = ? AND `password` = ? LIMIT 1";
 $result = $db->prepare($sql);

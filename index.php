@@ -2,6 +2,13 @@
 session_start();
 include_once('dbinfo.php');
 
+//todo!
+//2) Sort the results using at least one field (asc,desc) 
+//4) Include two aggregate functions (SUM, AVG, MAX, GROUP BY, etc)
+//a) Allow users to update their password (once they logged in)
+
+
+
 $sql = "SELECT * FROM `gamesNES` LIMIT 0, 100";
 $result = $db->prepare($sql);
 $result->execute();
@@ -21,26 +28,19 @@ $result->execute();
 	<script src="js/bootstrap.js"></script>
 
 	<link href="css/bootstrap.css" rel="stylesheet">
+	<link rel="stylesheet" href="css/main.css">
 
 	<link rel="import" href="http://www.polymer-project.org/components/polymer/polymer.html">
 	<link rel="import" href="http://www.polymer-project.org/components/core-scroll-header-panel/core-scroll-header-panel.html">
-	<link rel="import" href="http://www.polymer-project.org/components/core-list/core-list.html">
 	<link rel="import" href="http://www.polymer-project.org/components/core-header-panel/core-header-panel.html">
 	<link rel="import" href="http://www.polymer-project.org/components/core-drawer-panel/core-drawer-panel.html">
 	<link rel="import" href="http://www.polymer-project.org/components/core-toolbar/core-toolbar.html">
 	<link rel="import" href="http://www.polymer-project.org/components/core-menu/core-menu.html">
 	<link rel="import" href="http://www.polymer-project.org/components/paper-item/paper-item.html">
 	<link rel="import" href="http://www.polymer-project.org/components/core-icon-button/core-icon-button.html">
-	<link rel="import" href="http://www.polymer-project.org/components/core-icons/core-icons.html">
-	<link rel="import" href="http://www.polymer-project.org/components/core-icons/social-icons.html">
 	<link rel="import" href="http://www.polymer-project.org/components/paper-shadow/paper-shadow.html">
-	<link rel="import" href="http://www.polymer-project.org/components/paper-button/paper-button.html">
 	<link rel="import" href="http://www.polymer-project.org/components/paper-input/paper-input.html">
-	<link rel="import" href="http://www.polymer-project.org/components/paper-dialog/paper-dialog.html">
-	<link rel="import" href="http://www.polymer-project.org/components/paper-dialog/paper-action-dialog.html">
 	<link rel="import" href="http://www.polymer-project.org/components/paper-toast/paper-toast.html">
-
-	<link rel="stylesheet" href="css/main.css">
 
 	<style>
 		/* background for toolbar when it is at its full size */
@@ -70,7 +70,7 @@ $result->execute();
 					# code... for logged in
 					echo '
 						<core-toolbar id="navheader">
-							<span>Hello '.$_SESSION[username].': '.$_SESSION[id].'!</span>
+							<span>Hello '.$_SESSION[username].'!</span>
 						</core-toolbar>
 
 						<core-menu>
@@ -296,9 +296,28 @@ $result->execute();
 							echo '<td>'.$row['genre'].'</td>';
 							echo '<td>'.$row['quantityAvail'].'</td>';
 
+							
+
 							if (isset($_SESSION['username'])) {
+								
+
 								if ($row['quantityAvail'] >= 1) {
-									echo '<td><button class="btn btn-default">Rent!</button></td>';
+
+									$userID = $_SESSION['id'];
+									$gameID = $row['id'];
+
+									$sql2 = "SELECT * FROM `whatsOut` WHERE user_id = ? AND game_id = ?";
+									$result2 = $db->prepare($sql2);
+									$result2->execute(array("$userID", "$gameID"));
+									$rows_found2 = $result2->rowCount();
+
+									if ($rows_found2 >= 1) {
+										echo '<td><button disabled class="btn btn-default">Already Rented</button></td>';
+									} else {
+										echo '<td><button class="btn btn-default rentButton" id="'.$row['id'].'">Rent!</button></td>';
+									}
+
+
 								} else {
 									echo '<td><button disabled class="btn btn-default">Out of Stock</button></td>';
 								}
@@ -495,6 +514,22 @@ $(document).ready(function(){
 		});
 	});
 
+	$(".rentButton").click(function() {
+		var buttonID = this.id;
+
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "rentGame",
+				rentalID: buttonID
+			},
+			success: function(result) {
+				$("#output").html(result);
+			}
+		});
+	});
+
 	<?php
 
 	for ($i=1; $i < 11; $i++) { 
@@ -534,20 +569,6 @@ $(document).ready(function(){
 
 <?php
 /*
-
-
-echo '<td class="text-left" onclick="document.querySelector(\'#dialog'.$row[id].'\').toggle()">'.$row[gameTitle];
-
-								echo '
-
-									<paper-action-dialog backdrop autoCloseDisabled layered="false" id="dialog'.$row[id].'">
-										<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-
-										<paper-button affirmative autofocus>Tap me to close</paper-button>
-									</paper-action-dialog>
-
-
-								';
 
 
 

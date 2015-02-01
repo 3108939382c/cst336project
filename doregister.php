@@ -3,7 +3,7 @@ session_start();
 include_once('dbinfo.php');
 
 $postUsername = $_POST['registerUsername'];
-$postPassword = $_POST['registerPassword'];
+$postPassword = sha1($_POST['registerPassword']);
 
 //post to db
 $sql = "INSERT INTO `user` (`id`, `username`, `password`) VALUES (NULL, ?, ?)";

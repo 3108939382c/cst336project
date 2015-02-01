@@ -20,10 +20,38 @@ if ($_POST['doFunction'] == "registerUsername") {
 }
 
 if ($_POST['doFunction'] == "updatePassword") {
-	echo 'New Password:';
-	echo '<input type="text">';
-	echo '<button class="btn btn-default">Submit</button>';
-	echo '<paper-toast id="toast2" text="Password has been updated." opened></paper-toast>';
+
+	echo '
+
+		<paper-shadow z="2" class="main" style="padding: 10px;">
+			<div align="center">
+			New Password:
+			<input type="text" id="passwordInput">
+			<button class="btn btn-default" id="passwordButton">Submit</button>
+
+
+			</div>
+		</paper-shadow>
+		<script>
+		$("#passwordButton").click(function() {
+
+			var pword = $("#passwordInput").val();
+
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "doPasswordUpdate",
+					postPassword: pword
+				}, 
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
+		</script>
+		';
+	
 
 	/*
 	$newPassword = "abc123";
@@ -32,10 +60,123 @@ if ($_POST['doFunction'] == "updatePassword") {
 	$sql = "UPDATE `user` SET `password` = ? WHERE `id` = ?";
 	$result = $db->prepare($sql);
 	$result->execute(array("$password", "$userID"));
+	echo '<paper-toast id="toast2" text="Password has been updated." opened></paper-toast>';
 	*/
 
 
 }
+
+if ($_POST['doFunction'] == "doPasswordUpdate") {
+	$userID = $_SESSION['id'];
+	$password = sha1($_POST['postPassword']);
+	$sql = "UPDATE `user` SET `password` = ? WHERE `id` = ?";
+	$result = $db->prepare($sql);
+	$result->execute(array("$password", "$userID"));
+
+	echo '
+
+		<paper-shadow z="2" class="main" style="padding: 10px;">
+			<div align="center">
+			New Password:
+			<input type="text" id="passwordInput">
+			<button class="btn btn-default" id="passwordButton">Submit</button>
+
+
+			</div>
+		</paper-shadow>
+		<paper-toast id="toast2" text="Password has been updated." opened></paper-toast>
+		<script>
+		$("#passwordButton").click(function() {
+
+			var pword = $("#passwordInput").val();
+
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "doPasswordUpdate",
+					postPassword: pword
+				}, 
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
+		</script>
+
+		';
+}
+
+if ($_POST['doFunction'] == "rentGame") {
+	$gameID = $_POST['rentalID'];
+	$userID = $_SESSION['id'];
+
+	//update gamesnes -1 quantity available
+	$sql = "UPDATE gamesNES SET quantityAvail = quantityAvail - 1 WHERE id = ?";
+	$result = $db->prepare($sql);
+	$result->execute(array("$gameID"));
+
+	//insert into whatsout so it doesn't show as rented titles
+	$sql = "INSERT INTO `whatsOut` (`user_id`, `game_id`) VALUES (?, ?)";
+	$result = $db->prepare($sql);
+	$result->execute(array("$userID", "$gameID"));
+
+	//select all info for game, and echo it out
+	$sql = "SELECT * FROM gamesNES WHERE id = ?";
+	$result = $db->prepare($sql);
+	$result->execute(array("$gameID"));
+
+	foreach ($result as $row) {
+		# code...
+		echo '
+
+		<paper-shadow z="2" class="main" style="padding: 10px;">
+			<div align="center">';
+
+			//png
+			$pngImg = "img/thumb/" . $row['id'] . ".png";
+
+			//jpg
+			$jpgImg = "img/thumb/" . $row['id'] . ".jpg";
+
+			if (file_exists($pngImg)) {
+				echo '<img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'">';
+			}
+			if (file_exists($jpgImg)) {
+				echo '<img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'">';
+			}
+
+			echo '
+				<br>
+				You Rented '.$row['gameTitle'].'!
+				<br>
+				<button class="btn btn-default" id="rentMoreButton">Rent More!</button>
+
+			</div>
+		</paper-shadow>
+
+		<script>
+		$("#rentMoreButton").click(function() {
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "printMain",
+					goPage: "1"
+				}, 
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
+
+		</script>
+		';
+
+	}
+
+}
+
 
 if ($_POST['doFunction'] == "rentedTitles") {
 	echo '
@@ -65,14 +206,28 @@ if ($_POST['doFunction'] == "rentedTitles") {
 		';
 
 	foreach ($result as $row) {
-		# code...
 		echo '
-			<tr>
-				<td>Image goes here</td>
+			<tr>';
+				//png
+				$pngImg = "img/thumb/" . $row['id'] . ".png";
+
+				//jpg
+				$jpgImg = "img/thumb/" . $row['id'] . ".jpg";
+
+				if (file_exists($pngImg)) {
+					# code...
+					echo '<td><img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'"></td>';
+				} elseif (file_exists($jpgImg)) {
+					# code...
+					echo '<td><img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'"></td>';
+				} else {
+					echo '<td>&nbsp;</td>';
+				}
+		echo '
 				<td>'.$row['gameTitle'].'</td>
 				<td>'.$row['year'].'</td>
 				<td>'.$row['genre'].'</td>
-				<td><button class="btn btn-default">Return</button></td>
+				<td><button class="btn btn-default returnButton" id="'.$row['game_id'].'">Return</button></td>
 			</tr>
 
 			';
@@ -80,11 +235,127 @@ if ($_POST['doFunction'] == "rentedTitles") {
 	echo '
 		</table>
 		</div>
-	</paper-shadow>';
+	</paper-shadow>
+
+	<script>
+
+	$(".returnButton").click(function() {
+		var buttonID = this.id;
+
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "returnRental",
+				rentalID: buttonID
+			},
+			success: function(result) {
+				$("#output").html(result);
+			}
+		});
+	});
+
+	</script>';
 
 /*
 SELECT * FROM gamesNES g JOIN whatsOut w ON w.game_id = g.id WHERE w.user_id = '4'
 */
+
+}
+
+if ($_POST['doFunction'] == "returnRental") {
+	$gameID = $_POST['rentalID'];
+	$userID = $_SESSION['id'];
+
+	//update gamesnes +1 quantity available
+	$sql = "UPDATE gamesNES SET quantityAvail = quantityAvail + 1 WHERE id = ?";
+	$result = $db->prepare($sql);
+	$result->execute(array("$gameID"));
+
+	//delete from whatsout so it doesn't show as rented titles
+	$sql = "DELETE FROM whatsOut WHERE user_id = ? AND game_id = ?";
+	$result = $db->prepare($sql);
+	$result->execute(array("$userID", "$gameID"));
+
+	//print out new list
+	echo '
+	<paper-shadow z="2" class="main" style="padding: 10px;">
+		<div align="center">
+			<h2>Rented Titles</h2>
+		</div>
+	</paper-shadow>
+	<br>';
+
+	$sql = "SELECT * FROM gamesNES g JOIN whatsOut w ON w.game_id = g.id WHERE w.user_id = ?";
+	$result = $db->prepare($sql);
+	$result->execute(array("$userID"));
+
+	echo '<paper-toast id="toast2" text="Game was returned, Thank you!." opened></paper-toast>';
+
+	echo '
+	<paper-shadow z="2" class="main" style="padding: 10px;">
+		<div align="center">
+		<table class="table table-striped">
+			<tr>
+				<th>Image</th>
+				<th>Game Title</th>
+				<th>Year Released</th>
+				<th>Genre</th>
+				<th>&nbsp;</th>
+			</tr>
+		';
+
+	foreach ($result as $row) {
+		echo '
+			<tr>';
+				//png
+				$pngImg = "img/thumb/" . $row['id'] . ".png";
+
+				//jpg
+				$jpgImg = "img/thumb/" . $row['id'] . ".jpg";
+
+				if (file_exists($pngImg)) {
+					# code...
+					echo '<td><img src="'.$pngImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'"></td>';
+				} elseif (file_exists($jpgImg)) {
+					# code...
+					echo '<td><img src="'.$jpgImg.'" data-toggle="modal" data-target="#modal'.$row['id'].'"></td>';
+				} else {
+					echo '<td>&nbsp;</td>';
+				}
+		echo '
+				<td>'.$row['gameTitle'].'</td>
+				<td>'.$row['year'].'</td>
+				<td>'.$row['genre'].'</td>
+				<td><button class="btn btn-default returnButton" id="'.$row['game_id'].'">Return</button></td>
+			</tr>
+
+			';
+	}
+	echo '
+		</table>
+		</div>
+	</paper-shadow>
+
+	<script>
+
+	$(".returnButton").click(function() {
+		var buttonID = this.id;
+
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "returnRental",
+				rentalID: buttonID
+			},
+			success: function(result) {
+				$("#output").html(result);
+			}
+		});
+	});
+
+	</script>';
 
 }
 
@@ -236,8 +507,24 @@ if ($_POST['doFunction'] == "home") {
 			echo '<td>'.$row['quantityAvail'].'</td>';
 
 			if (isset($_SESSION['username'])) {
+								
 				if ($row['quantityAvail'] >= 1) {
-					echo '<td><button class="btn btn-default">Rent!</button></td>';
+
+					$userID = $_SESSION['id'];
+					$gameID = $row['id'];
+
+					$sql2 = "SELECT * FROM `whatsOut` WHERE user_id = ? AND game_id = ?";
+					$result2 = $db->prepare($sql2);
+					$result2->execute(array("$userID", "$gameID"));
+					$rows_found2 = $result2->rowCount();
+
+					if ($rows_found2 >= 1) {
+						echo '<td><button disabled class="btn btn-default">Already Rented</button></td>';
+					} else {
+						echo '<td><button class="btn btn-default rentButton" id="'.$row['id'].'">Rent!</button></td>';
+					}
+
+
 				} else {
 					echo '<td><button disabled class="btn btn-default">Out of Stock</button></td>';
 				}
@@ -312,6 +599,22 @@ if ($_POST['doFunction'] == "home") {
 					theGenre: searchGenre,
 					theYear: searchYears,
 					theStock: searchStock
+				},
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
+
+		$(".rentButton").click(function() {
+			var buttonID = this.id;
+
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "rentGame",
+					rentalID: buttonID
 				},
 				success: function(result) {
 					$("#output").html(result);
@@ -476,8 +779,24 @@ if ($_POST['doFunction'] == "printMain") {
 			echo '<td>'.$row['quantityAvail'].'</td>';
 
 			if (isset($_SESSION['username'])) {
+								
 				if ($row['quantityAvail'] >= 1) {
-					echo '<td><button class="btn btn-default">Rent!</button></td>';
+
+					$userID = $_SESSION['id'];
+					$gameID = $row['id'];
+
+					$sql2 = "SELECT * FROM `whatsOut` WHERE user_id = ? AND game_id = ?";
+					$result2 = $db->prepare($sql2);
+					$result2->execute(array("$userID", "$gameID"));
+					$rows_found2 = $result2->rowCount();
+
+					if ($rows_found2 >= 1) {
+						echo '<td><button disabled class="btn btn-default">Already Rented</button></td>';
+					} else {
+						echo '<td><button class="btn btn-default rentButton" id="'.$row['id'].'">Rent!</button></td>';
+					}
+
+
 				} else {
 					echo '<td><button disabled class="btn btn-default">Out of Stock</button></td>';
 				}
@@ -558,6 +877,22 @@ if ($_POST['doFunction'] == "printMain") {
 				}
 			});
 		});
+
+		$(".rentButton").click(function() {
+			var buttonID = this.id;
+
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "rentGame",
+					rentalID: buttonID
+				},
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
 		</script>
 	</paper-shadow>
 	';
@@ -568,8 +903,6 @@ if ($_POST['doFunction'] == "makeSearch" ) {
 	# code...
 	$stringStart = "SELECT * FROM gamesNES";
 	$myArray = array();
-
-	$text = $_POST[theText];
 
 	if ($_POST['theText'] != '') {
 		$string = '`gameTitle` LIKE \'%'.$_POST['theText'].'%\'';
@@ -771,8 +1104,24 @@ if ($_POST['doFunction'] == "makeSearch" ) {
 			echo '<td>'.$row['quantityAvail'].'</td>';
 
 			if (isset($_SESSION['username'])) {
+								
 				if ($row['quantityAvail'] >= 1) {
-					echo '<td><button class="btn btn-default">Rent!</button></td>';
+
+					$userID = $_SESSION['id'];
+					$gameID = $row['id'];
+
+					$sql2 = "SELECT * FROM `whatsOut` WHERE user_id = ? AND game_id = ?";
+					$result2 = $db->prepare($sql2);
+					$result2->execute(array("$userID", "$gameID"));
+					$rows_found2 = $result2->rowCount();
+
+					if ($rows_found2 >= 1) {
+						echo '<td><button disabled class="btn btn-default">Already Rented</button></td>';
+					} else {
+						echo '<td><button class="btn btn-default rentButton" id="'.$row['id'].'">Rent!</button></td>';
+					}
+
+
 				} else {
 					echo '<td><button disabled class="btn btn-default">Out of Stock</button></td>';
 				}
@@ -840,11 +1189,25 @@ if ($_POST['doFunction'] == "makeSearch" ) {
 				}
 			});
 		});
+
+		$(".rentButton").click(function() {
+			var buttonID = this.id;
+
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "rentGame",
+					rentalID: buttonID
+				},
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
 		</script>
 	</paper-shadow>
 	';
-
-
 }
 
 
