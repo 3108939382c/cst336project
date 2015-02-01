@@ -2,7 +2,7 @@
 session_start();
 include_once('dbinfo.php');
 
-$sql = "SELECT * FROM `gamesNES` LIMIT 30";
+$sql = "SELECT * FROM `gamesNES` LIMIT 0, 100";
 $result = $db->prepare($sql);
 $result->execute();
 
@@ -157,7 +157,78 @@ $result->execute();
 
 					<paper-shadow z="2" class="main" style="padding: 10px;">
 						<div align="center">
-							<h2>something</h2>
+							<table class="table">
+								<tr>
+									<td>Title:</td>
+									<td>Genre:</td>
+									<td>Release Year:</td>
+									<td>Availability:</td>
+									<td>&nbsp;</td>
+								</tr>
+								<tr>
+									<td>
+										<input type="text" name="searchText" id="searchText">
+									</td>
+									<td>
+										<select name="searchGenre" id="searchGenre">
+											<option value="All">All</option>
+											<option value="Action">Action</option>
+											<option value="Adventure">Adventure</option>
+											<option value="Construction and Man">Construction and Man</option>
+											<option value="Fighting">Fighting</option>
+											<option value="Flight Simulator">Flight Simulator</option>
+											<option value="Life Simulation">Life Simulation</option>
+											<option value="Platform">Platform</option>
+											<option value="Puzzle">Puzzle</option>
+											<option value="Racing">Racing</option>
+											<option value="Role-Playing">Role-Playing</option>
+											<option value="Sandbox">Sandbox</option>
+											<option value="Shooter">Shooter</option>
+											<option value="Sports">Sports</option>
+											<option value="Strategy">Strategy</option>
+											<option value="Vehicle Simulation">Vehicle Simulation</option>
+										</select>
+									</td>
+									<td>
+										<select name="searchYears" id="searchYears">
+											<option value="All">All</option>
+											<option value="1970">1970</option>
+											<option value="1982">1982</option>
+											<option value="1983">1983</option>
+											<option value="1984">1984</option>
+											<option value="1985">1985</option>
+											<option value="1986">1986</option>
+											<option value="1987">1987</option>
+											<option value="1988">1988</option>
+											<option value="1989">1989</option>
+											<option value="1990">1990</option>
+											<option value="1991">1991</option>
+											<option value="1992">1992</option>
+											<option value="1993">1993</option>
+											<option value="1994">1994</option>
+											<option value="1995">1995</option>
+											<option value="1996">1996</option>
+											<option value="1999">1999</option>
+											<option value="2010">2010</option>
+											<option value="2014">2014</option>
+											<option value="2015">2015</option>
+										</select>
+									</td>
+									<td>
+										<select name="searchStock" id="searchStock">
+											<option value="All">All</option>
+											<option value="InStock">In Stock</option>
+											<option value="OutOfStock">Out of Stock</option>
+										</select>
+									</td>
+									<td>
+										<button id="clickButton">Submit</button>
+									</td>
+								</tr>
+
+							</table>
+
+							
 							<br>
 						</div>
 					</paper-shadow>
@@ -169,8 +240,10 @@ $result->execute();
 							<tr>
 								<th>Image</th>
 								<th>Game Title</th>
-								<th>Release Date</th>
+								<th>Year<br>Released</th>
 								<th>Genre</th>
+								<th>Quantity<br>Available</th>
+								<th>&nbsp;</th>
 							</tr>
 
 						<?php
@@ -219,8 +292,23 @@ $result->execute();
 							//end modal
 							echo '</td>';
 
-							echo '<td>'.$row['releaseDate'].'</td>';
+							echo '<td>'.$row['year'].'</td>';
 							echo '<td>'.$row['genre'].'</td>';
+							echo '<td>'.$row['quantityAvail'].'</td>';
+
+							if (isset($_SESSION['username'])) {
+								if ($row['quantityAvail'] >= 1) {
+									echo '<td><button class="btn btn-default">Rent!</button></td>';
+								} else {
+									echo '<td><button disabled class="btn btn-default">Out of Stock</button></td>';
+								}
+							} else {
+								echo '<td>&nbsp;</td>';
+							}
+
+							
+
+							
 					
 							echo '</tr>';
 							
@@ -229,7 +317,22 @@ $result->execute();
 
 						?>
 
-						</table>			
+						</table>
+
+						<div align="center">
+						<ul class="pagination">
+							<li id="page1"><a>1</a></li>
+							<li id="page2"><a>2</a></li>
+							<li id="page3"><a>3</a></li>
+							<li id="page4"><a>4</a></li>
+							<li id="page5"><a>5</a></li>
+							<li id="page6"><a>6</a></li>
+							<li id="page7"><a>7</a></li>
+							<li id="page8"><a>8</a></li>
+							<li id="page9"><a>9</a></li>
+							<li id="page10"><a>10</a></li>
+						</ul>	
+						</div>			
 					</paper-shadow>
 
 				</div>
@@ -280,7 +383,6 @@ $(document).ready(function(){
 					checkUsername: x
 				},
 				success: function(result) {
-					//on sucess
 					if (result == 'okay') {
 						//if result == okay, username is available to register
 						//$("#output").html(result);
@@ -332,7 +434,6 @@ $(document).ready(function(){
 				someData: "x"
 			},
 			success: function(result) {
-				//on sucess
 				$("#output").html(result);
 				
 			}
@@ -349,7 +450,6 @@ $(document).ready(function(){
 				someData: "x"
 			},
 			success: function(result) {
-				//on sucess
 				$("#output").html(result);
 				
 			}
@@ -366,13 +466,59 @@ $(document).ready(function(){
 				someData: "x"
 			},
 			success: function(result) {
-				//on sucess
 				$("#output").html(result);
-				
 			}
 		});
 
 	});
+
+	$('#clickButton').click(function() {
+
+		var searchText = $("#searchText").val();
+		var searchGenre = $("#searchGenre").val();
+		var searchYears = $("#searchYears").val();
+		var searchStock = $("#searchStock").val();
+
+		$.ajax({
+			url: "doajax.php",
+			type: "POST",
+			data: {
+				doFunction: "makeSearch",
+				theText: searchText,
+				theGenre: searchGenre,
+				theYear: searchYears,
+				theStock: searchStock
+			},
+			success: function(result) {
+				$("#output").html(result);
+			}
+		});
+	});
+
+	<?php
+
+	for ($i=1; $i < 11; $i++) { 
+		# code...
+		echo '
+		$("#page'.$i.'").click(function() {
+			$.ajax({
+				url: "doajax.php",
+				type: "POST",
+				data: {
+					doFunction: "printMain",
+					goPage: "'.$i.'"
+				}, 
+				success: function(result) {
+					$("#output").html(result);
+				}
+			});
+		});
+
+
+		';
+	}
+
+	?>
 
 	
 	
@@ -383,7 +529,6 @@ $(document).ready(function(){
 
 </body>
 </html>
-
 
 
 
