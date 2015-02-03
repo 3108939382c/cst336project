@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS `loginLog` (
+  `user_id` int(5) NOT NULL,
+  `timestamp` varchar(12) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `user` (
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  `username` varchar(45) NOT NULL,
+  `password` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=13 ;
+
+CREATE TABLE IF NOT EXISTS `whatsOut` (
+  `user_id` int(5) NOT NULL,
+  `game_id` int(5) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

@@ -9,7 +9,7 @@ include_once('dbinfo.php');
 
 
 
-$sql = "SELECT * FROM `gamesNES` LIMIT 0, 100";
+$sql = "SELECT * FROM `gamesNES` ORDER BY `gameTitle` ASC LIMIT 0, 100 ";
 $result = $db->prepare($sql);
 $result->execute();
 

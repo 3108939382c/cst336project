@@ -122,7 +122,7 @@ if ($_POST['doFunction'] == "rentGame") {
 	$result->execute(array("$userID", "$gameID"));
 
 	//select all info for game, and echo it out
-	$sql = "SELECT * FROM gamesNES WHERE id = ?";
+	$sql = "SELECT * FROM gamesNES WHERE id = ? ORDER BY `gameTitle` ASC";
 	$result = $db->prepare($sql);
 	$result->execute(array("$gameID"));
 
@@ -188,7 +188,7 @@ if ($_POST['doFunction'] == "rentedTitles") {
 	<br>';
 
 	$userID = $_SESSION['id'];
-	$sql = "SELECT * FROM gamesNES g JOIN whatsOut w ON w.game_id = g.id WHERE w.user_id = ?";
+	$sql = "SELECT * FROM gamesNES g JOIN whatsOut w ON w.game_id = g.id WHERE w.user_id = ? ORDER BY `gameTitle` ASC";
 	$result = $db->prepare($sql);
 	$result->execute(array("$userID"));
 
@@ -286,7 +286,7 @@ if ($_POST['doFunction'] == "returnRental") {
 	</paper-shadow>
 	<br>';
 
-	$sql = "SELECT * FROM gamesNES g JOIN whatsOut w ON w.game_id = g.id WHERE w.user_id = ?";
+	$sql = "SELECT * FROM gamesNES g JOIN whatsOut w ON w.game_id = g.id WHERE w.user_id = ? ORDER BY `gameTitle` ASC";
 	$result = $db->prepare($sql);
 	$result->execute(array("$userID"));
 
@@ -454,7 +454,7 @@ if ($_POST['doFunction'] == "home") {
 
 		';
 
-		$sql = "SELECT * FROM `gamesNES` LIMIT 0, 100";
+		$sql = "SELECT * FROM `gamesNES` ORDER BY `gameTitle` ASC LIMIT 0, 100";
 		$result = $db->prepare($sql);
 		$result->execute();
 
@@ -726,7 +726,7 @@ if ($_POST['doFunction'] == "printMain") {
 		$page = ($page - 1) * 100;
 
 
-		$sql = "SELECT * FROM `gamesNES` LIMIT ".$page.", 100";
+		$sql = "SELECT * FROM `gamesNES` ORDER BY `gameTitle` ASC LIMIT ".$page.", 100";
 		$result = $db->prepare($sql);
 		$result->execute();
 
