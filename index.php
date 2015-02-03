@@ -2,17 +2,6 @@
 session_start();
 include_once('dbinfo.php');
 
-//todo!
-//2) Sort the results using at least one field (asc,desc) 
-//4) Include two aggregate functions (SUM, AVG, MAX, GROUP BY, etc)
-//a) Allow users to update their password (once they logged in)
-
-
-
-$sql = "SELECT * FROM `gamesNES` ORDER BY `gameTitle` ASC LIMIT 0, 100 ";
-$result = $db->prepare($sql);
-$result->execute();
-
 ?>
 <!DOCTYPE html>
 <html itemscope itemtype="http://schema.org/Organization">
@@ -157,6 +146,51 @@ $result->execute();
 
 					<paper-shadow z="2" class="main" style="padding: 10px;">
 						<div align="center">
+							<?php
+
+							$sql = "SELECT COUNT(*) FROM gamesNES";
+							$stmt = $db -> prepare($sql);
+							$stmt -> execute();
+							$totalTitles = $stmt->fetchColumn();
+
+							$sql = "SELECT COUNT(*) FROM gamesNES WHERE quantityAvail > 0";
+							$stmt = $db -> prepare($sql);
+							$stmt -> execute();
+							$totalAvail = $stmt->fetchColumn();
+
+							$sql = "SELECT COUNT(*) FROM gamesNES WHERE quantityAvail = 0";	
+							$stmt = $db -> prepare($sql);
+							$stmt -> execute();
+							$totalOut = $stmt->fetchColumn();
+
+							$sql = "SELECT AVG(quantityAvail) FROM gamesNES"; 
+							$stmt = $db -> prepare($sql);
+							$stmt -> execute();
+							$avgAvail = $stmt->fetchColumn();
+							$avgAvailFormatted = number_format($avgAvail); 
+
+							echo '
+
+							The NES Game Rental store features the most comprehensive selection of games available for old school Nintendo systems. 
+							With '.$totalAvail.' currently available titles from our total inventory of '.$totalTitles.' distinct game titles, we are the #1 source for NES game rentals! 
+							<br /><br />
+							There is currently an average of '.$avgAvailFormatted.' copies in stock per game title, and many of our '.$totalOut.' rented titles are returned daily!
+
+
+							';
+
+							
+
+
+
+							?>
+						</div>
+					</paper-shadow>
+
+					<br>
+
+					<paper-shadow z="2" class="main" style="padding: 10px;">
+						<div align="center">
 							<table class="table">
 								<tr>
 									<td>Title:</td>
@@ -247,6 +281,10 @@ $result->execute();
 							</tr>
 
 						<?php
+
+						$sql = "SELECT * FROM `gamesNES` ORDER BY `gameTitle` ASC LIMIT 0, 100 ";
+						$result = $db->prepare($sql);
+						$result->execute();
 
 						foreach ($result as $row) {
 							echo '<tr>';
